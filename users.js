@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+// const { isAxiosError } = require("axios");
 const database = require("./database");
 // eslint-disable-next-line no-unused-vars
 const users = [
@@ -66,7 +67,6 @@ const getUsers = (req, res) => {
 
 const getUserById = (req, res) => {
   const id = parseInt(req.params.id);
-
   database
     .query("select * from users where id = ?", [id])
     .then(([users]) => {
@@ -98,8 +98,31 @@ const postUser = (req, res) => {
       res.status(500).send("Error editing the user");
     });
 };
+
+const updateUser = (req, res) => {
+  const id = parseInt(req.params.id);
+  const { firstname, lastname, email, city, language } = req.body;
+  database
+    .query(
+      "UPDATE users SET firstname = ?, lastname = ?, email = ?, city = ?, language = ? WHERE id = ?",
+      [firstname, lastname, email, city, language, id]
+    )
+    .then(([result]) => {
+      if (result.affectedRows === 0) {
+        res.status(404).send("Not found");
+      } else {
+        res.sendStatus(204);
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("Error updating user");
+    });
+};
+
 module.exports = {
   getUsers,
   getUserById,
   postUser,
+  updateUser,
 };
