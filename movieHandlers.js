@@ -1,3 +1,4 @@
+/* eslint-disable no-dupe-else-if */
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
 const database = require("./database");
@@ -29,8 +30,23 @@ const movies = [
 ];
 
 const getMovies = (req, res) => {
+  let sql = "select * from movies";
+  const sqlValues = [];
+
+  if (req.query.color != null) {
+    sql += " where color = ?";
+    sqlValues.push(req.query.color);
+
+    if (req.query.max_duration != null) {
+      sql += " and duration <= ?";
+      sqlValues.push(req.query.max_duration);
+    }
+  } else if (req.query.max_duration != null) {
+    sql += "where duration <= ?";
+    sqlValues.push(req.query.max_duration);
+  }
   database
-    .query("select * from movies")
+    .query(sql, sqlValues)
     .then(([movies]) => {
       res.json(movies);
     })
@@ -95,9 +111,27 @@ const updateMovie = (req, res) => {
     });
 };
 
+const deleteMovie = (req, res) => {
+  const id = parseInt(req.params.id);
+  database
+    .query("DELETE FROM movies WHERE id = ?", [id])
+    .then(([result]) => {
+      if (result.affectedRows === 0) {
+        res.status(404).send("Not found");
+      } else {
+        res.sendStatus(204);
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("Error deleting the movie");
+    });
+};
+
 module.exports = {
   getMovies,
   getMovieById,
   postMovie,
   updateMovie,
+  deleteMovie,
 };
