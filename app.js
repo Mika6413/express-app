@@ -15,6 +15,7 @@ const welcome = (req, res) => {
 
 app.get("/", welcome);
 const { validateMovie, validateUser } = require("./validators.js");
+const { hashPassword } = require("./auth.js");
 
 const movieHandlers = require("./movieHandlers");
 app.get("/api/movies", movieHandlers.getMovies);
@@ -26,8 +27,8 @@ app.delete("/api/movies/:id", movieHandlers.deleteMovie);
 const users = require("./users");
 app.get("/api/users", users.getUsers);
 app.get("/api/users/:id", users.getUserById);
-app.post("/api/users", validateUser, users.postUser);
-app.put("/api/users/:id", users.updateUser);
+app.post("/api/users", validateUser, hashPassword, users.postUser);
+app.put("/api/users/:id", hashPassword, users.updateUser);
 app.delete("/api/users/:id", users.deleteUser);
 
 app.listen(port, (err) => {
