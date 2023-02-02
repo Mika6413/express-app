@@ -1,6 +1,7 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 const argon2 = require("argon2");
+
 const jwt = require("jsonwebtoken");
 
 const hashingOptions = {
@@ -14,7 +15,9 @@ const hashPassword = (req, res, next) => {
   argon2
     .hash(req.body.password, hashingOptions)
     .then((hashedPassword) => {
-      consGETole.log(hashedPassword);
+
+      console.log(hashedPassword);
+
 
       req.body.hashedPassword = hashedPassword;
       delete req.body.password;
@@ -26,6 +29,7 @@ const hashPassword = (req, res, next) => {
       res.sendStatus(500);
     });
 };
+
 
 const verifyPassword = (req, res) => {
   argon2
@@ -73,5 +77,4 @@ const verifyToken = (req, res, next) => {
 module.exports = {
   hashPassword,
   verifyPassword,
-  verifyToken,
 };
