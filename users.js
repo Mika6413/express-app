@@ -97,30 +97,51 @@ const getUserById = (req, res) => {
     });
 };
 
+const getUserByEmailWithPasswordAndPassToNext = (req, res, next) => {
+  const { email } = req.body;
+  database
+    .query("select * from users where email = ?", [email])
+    .then(([users]) => {
+      if (users[0] != null) {
+        req.user = users[0];
+
+        next();
+      } else {
+        res.sendStatus(401);
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("Error retrieving data from database");
+    });
+};
+
 const postUser = (req, res) => {
-  const { firstname, lastname, email, city, language } = req.body;
+  const { firstname, lastname, email, city, language, hashedPassword } =
+    req.body;
   console.log(req.body);
   database
     .query(
-      "INSERT INTO users(firstname, lastname, email, city, language) VALUES (?,?,?,?,?)",
-      [firstname, lastname, email, city, language]
+      "INSERT INTO users(firstname, lastname, email, city, language, hashedPassword) VALUES (?,?,?,?,?,?)",
+      [firstname, lastname, email, city, language, hashedPassword]
     )
     .then(([result]) => {
       res.location(`/api/users/${result.insertId}`).sendStatus(201);
     })
     .catch((err) => {
       console.error(err);
-      res.status(500).send("Error editing the user");
+      res.status(500).send("Error creating the user");
     });
 };
 
 const updateUser = (req, res) => {
   const id = parseInt(req.params.id);
-  const { firstname, lastname, email, city, language } = req.body;
+  const { firstname, lastname, email, city, language, hashedPassword } =
+    req.body;
   database
     .query(
-      "UPDATE users SET firstname = ?, lastname = ?, email = ?, city = ?, language = ? WHERE id = ?",
-      [firstname, lastname, email, city, language, id]
+      "UPDATE users SET firstname = ?, lastname = ?, email = ?, city = ?, language = ? hashedPassword = ? WHERE id = ?",
+      [firstname, lastname, email, city, language, hashedPassword, id]
     )
     .then(([result]) => {
       if (result.affectedRows === 0) {
@@ -151,9 +172,11 @@ const deleteUser = (req, res) => {
       res.status(500).send("Error deleting the user");
     });
 };
+
 module.exports = {
   getUsers,
   getUserById,
+  getUserByEmailWithPasswordAndPassToNext,
   postUser,
   updateUser,
   deleteUser,
